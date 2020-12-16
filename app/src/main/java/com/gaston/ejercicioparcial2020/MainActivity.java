@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
@@ -20,6 +21,7 @@ import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
     Button guardar;
     private Handler miHandler;
     private static final int CODIGO_OPERACION = 99;
-    private static final String CANAL_MENSAJES_ID = "canal";
+    //private static final String CANAL_MENSAJES_ID = "canal";
     private static List< Alumno > alumnosCargados ;
     private String turnoElegido;
     @Override
@@ -55,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
         filtro.addAction(MyReceiver.EVENTO_01);
         getApplication().getApplicationContext()
                 .registerReceiver(br,filtro);
+        createNotificationChannel(this);
         turnos.setOnItemSelectedListener(
                 new AdapterView.OnItemSelectedListener() {
                     @Override
@@ -69,9 +72,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void handleMessage(Message inputMessage) {
                 if(inputMessage.what==CODIGO_OPERACION){
-                    /*estado.setTextColor((Integer)inputMessage.obj);
-                    estado.setText("FINALIZA proceso largo”
-                            + “La duracion es "+inputMessage.arg1);*/
+                    Alumno a= (Alumno) inputMessage.obj;
+                    Toast.makeText(MainActivity.this, a.getNombre().toString()+"--"+a.getApellido()+"--"+
+                            a.getTurnoElegido()+"--"+a.getLegajo(),Toast.LENGTH_LONG).show();
                 }
             }
         };
@@ -85,10 +88,10 @@ public class MainActivity extends AppCompatActivity {
                 Runnable r = new Runnable() {
                     @Override
                     public void run() {
-                            Alumno a1 = new Alumno(nombre.getText().toString(),apellido.getText().toString(),Integer.parseInt(legajo.getText().toString()), turnoElegido);
-                            alumnosCargados.add(a1);
-                            mensaje.obj=a1;
-                            miHandler.sendMessage(mensaje);
+                        Alumno a1 = new Alumno(nombre.getText().toString(),apellido.getText().toString(),Integer.parseInt(legajo.getText().toString()), turnoElegido);
+                        alumnosCargados.add(a1);
+                        mensaje.obj=a1;
+                        miHandler.sendMessage(mensaje);
                         Intent i = new Intent();
                         i.putExtra("data1",nombre.getText().toString());
                         i.putExtra("data2",apellido.getText().toString());
@@ -104,17 +107,12 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
-    private void createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = getString(R.string.nombre_canal);
-            //String description = getString(R.string.channel_description);
-            int importance = NotificationManager.IMPORTANCE_DEFAULT;
-            NotificationChannel channel =
-                    new NotificationChannel(CANAL_MENSAJES_ID, name, importance);
-            //channel.setDescription(description);
-            NotificationManager notificationManager =
-                    getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
+    public void createNotificationChannel(Context context) {
+        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE ) ;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES. O ) {
+            int importance = NotificationManager.IMPORTANCE_HIGH ;
+            NotificationChannel notificationChannel = new NotificationChannel(  MyReceiver.NOTIFICATION_CHANNEL_ID , "NOTIFICATION_CHANNEL_NAME" , importance) ;
+            notificationManager.createNotificationChannel(notificationChannel) ;
         }
     }
 }
